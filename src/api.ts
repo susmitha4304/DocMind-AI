@@ -11,6 +11,34 @@ function getHeaders(): HeadersInit {
   return headers;
 }
 
+async function parseResponse(res: Response, defaultErrMsg: string) {
+  const contentType = res.headers.get('content-type') || '';
+  let data: any = null;
+
+  if (contentType.includes('application/json')) {
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
+  } else {
+    // If text or HTML returned (e.g. 502 Bad Gateway or 404 HTML)
+    const text = await res.text();
+    if (!res.ok) {
+      // Strip HTML tags for clean error message
+      const cleanText = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      throw new Error(cleanText || `Server returned error (${res.status} ${res.statusText})`);
+    }
+    throw new Error(defaultErrMsg);
+  }
+
+  if (!res.ok) {
+    throw new Error(data?.error || data?.message || defaultErrMsg);
+  }
+
+  return data;
+}
+
 export const API = {
   // Auth
   async login(email: string, passwordString: string) {
@@ -19,9 +47,7 @@ export const API = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password: passwordString }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Login failed');
-    return data;
+    return parseResponse(res, 'Login failed');
   },
 
   async register(email: string, passwordString: string, fullName: string) {
@@ -30,17 +56,14 @@ export const API = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password: passwordString, fullName }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Registration failed');
-    return data;
+    return parseResponse(res, 'Registration failed');
   },
 
   async getCurrentUser() {
     const res = await fetch(`${API_BASE}/auth/me`, {
       headers: getHeaders(),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to fetch user');
+    const data = await parseResponse(res, 'Failed to fetch user');
     return data.user;
   },
 
@@ -49,8 +72,7 @@ export const API = {
     const res = await fetch(`${API_BASE}/documents`, {
       headers: getHeaders(),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to fetch documents');
+    const data = await parseResponse(res, 'Failed to fetch documents');
     return data.documents;
   },
 
@@ -67,9 +89,7 @@ export const API = {
       headers: getHeaders(),
       body: JSON.stringify({ name, type, size, base64, chunkSize, chunkOverlap }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to upload document');
-    return data;
+    return parseResponse(res, 'Failed to upload document');
   },
 
   async searchDocumentContent(query: string, documentId?: string) {
@@ -80,18 +100,14 @@ export const API = {
     const res = await fetch(`${API_BASE}/documents/search?${params.toString()}`, {
       headers: getHeaders(),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to search documents');
-    return data;
+    return parseResponse(res, 'Failed to search documents');
   },
 
   async getDocumentChunks(id: string) {
     const res = await fetch(`${API_BASE}/documents/${id}/chunks`, {
       headers: getHeaders(),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to fetch document chunks');
-    return data;
+    return parseResponse(res, 'Failed to fetch document chunks');
   },
 
   async deleteDocument(id: string) {
@@ -99,9 +115,7 @@ export const API = {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to delete document');
-    return data;
+    return parseResponse(res, 'Failed to delete document');
   },
 
   async clearAllDocuments() {
@@ -109,9 +123,7 @@ export const API = {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to clear all documents');
-    return data;
+    return parseResponse(res, 'Failed to clear all documents');
   },
 
   // Chat
@@ -119,8 +131,7 @@ export const API = {
     const res = await fetch(`${API_BASE}/chat`, {
       headers: getHeaders(),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to fetch chat sessions');
+    const data = await parseResponse(res, 'Failed to fetch chat sessions');
     return data.chats;
   },
 
@@ -130,8 +141,7 @@ export const API = {
       headers: getHeaders(),
       body: JSON.stringify({ title }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to create conversation');
+    const data = await parseResponse(res, 'Failed to create conversation');
     return data.chat;
   },
 
@@ -141,8 +151,7 @@ export const API = {
       headers: getHeaders(),
       body: JSON.stringify({ content, settings, documentId }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to send message');
+    const data = await parseResponse(res, 'Failed to send message');
     return data.chat;
   },
 
@@ -151,8 +160,7 @@ export const API = {
       method: 'POST',
       headers: getHeaders(),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to clear conversation');
+    const data = await parseResponse(res, 'Failed to clear conversation');
     return data.chat;
   },
 
@@ -161,9 +169,7 @@ export const API = {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to delete conversation');
-    return data;
+    return parseResponse(res, 'Failed to delete conversation');
   },
 
   async clearAllChats() {
@@ -171,9 +177,7 @@ export const API = {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to clear all conversations');
-    return data;
+    return parseResponse(res, 'Failed to clear all conversations');
   },
 
   async submitFeedback(messageId: string, isPositive: boolean, comment?: string) {
@@ -182,8 +186,6 @@ export const API = {
       headers: getHeaders(),
       body: JSON.stringify({ messageId, isPositive, comment }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to submit feedback');
-    return data;
+    return parseResponse(res, 'Failed to submit feedback');
   }
 };
