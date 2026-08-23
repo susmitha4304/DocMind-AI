@@ -1,0 +1,6 @@
+{
+  "name": "DocMind AI",
+  "description": "Production-grade RAG workspace supporting any document type (PDF, DOCX, TXT, CSV, JSON, MD, Code), deep document search, and accurate citation-grounded QA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
