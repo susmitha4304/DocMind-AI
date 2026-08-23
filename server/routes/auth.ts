@@ -14,7 +14,7 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    const existing = Storage.getUserByEmail(email);
+    const existing = await Storage.getUserByEmailAsync(email);
     if (existing) {
       res.status(400).json({ error: 'User with this email already exists.' });
       return;
@@ -39,7 +39,7 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const user = Storage.getUserByEmail(email);
+    const user = await Storage.getUserByEmailAsync(email);
     if (!user) {
       res.status(401).json({ error: 'Invalid email or password.' });
       return;

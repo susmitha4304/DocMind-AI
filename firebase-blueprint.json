@@ -1,0 +1,53 @@
+{
+  "rules": {
+    "users": {
+      "indexes": [],
+      "fields": {
+        "email": { "type": "string" },
+        "fullName": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "passwordHash": { "type": "string" }
+      }
+    },
+    "documents": {
+      "indexes": [],
+      "fields": {
+        "name": { "type": "string" },
+        "size": { "type": "number" },
+        "type": { "type": "string" },
+        "pageCount": { "type": "number" },
+        "uploadDate": { "type": "string" },
+        "userId": { "type": "string" }
+      }
+    },
+    "chunks": {
+      "indexes": [],
+      "fields": {
+        "documentId": { "type": "string" },
+        "docName": { "type": "string" },
+        "text": { "type": "string" },
+        "pageNumber": { "type": "number" },
+        "embedding": { "type": "array" }
+      }
+    },
+    "chats": {
+      "indexes": [],
+      "fields": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "messages": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "feedbacks": {
+      "indexes": [],
+      "fields": {
+        "messageId": { "type": "string" },
+        "isPositive": { "type": "boolean" },
+        "comment": { "type": "string" },
+        "createdAt": { "type": "string" }
+      }
+    }
+  }
+}
